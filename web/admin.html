@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移车助手管理后台</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body, #app { height: 100%; }
+  body {
+    background: #000;
+    color: #f5f5f7;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  :root {
+    --el-bg-color: #1c1c1e;
+    --el-bg-color-overlay: #2c2c2e;
+    --el-text-color-primary: #f5f5f7;
+    --el-text-color-regular: #aeaeb2;
+    --el-text-color-placeholder: #636366;
+    --el-border-color: rgba(255,255,255,0.08);
+    --el-border-color-light: rgba(255,255,255,0.05);
+    --el-fill-color: rgba(255,255,255,0.05);
+    --el-fill-color-light: rgba(255,255,255,0.08);
+    --el-fill-color-blank: #1c1c1e;
+    --el-color-primary: #007AFF;
+    --el-color-primary-light-3: #0A84FF;
+    --el-color-white: #f5f5f7;
+    --el-color-black: #000;
+    --el-color-info: #636366;
+    --el-color-success: #30D158;
+    --el-color-warning: #FF9F0A;
+    --el-color-danger: #FF453A;
+    --el-mask-color: rgba(0,0,0,0.7);
+    --el-border-radius-base: 10px;
+    --el-table-border-color: rgba(255,255,255,0.05);
+    --el-table-row-hover-bg-color: rgba(255,255,255,0.05);
+    --el-table-header-bg-color: transparent;
+    --el-pagination-bg-color: transparent;
+    --el-dialog-bg-color: #2c2c2e;
+  }
+  #app {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .navbar-title { font-size: 16px; font-weight: 600; letter-spacing: 0.3px; color: #f5f5f7; }
+  .navbar-right { display: flex; align-items: center; gap: 10px; }
+  .navbar-right label { font-size: 13px; color: #aeaeb2; }
+  .navbar-right input {
+    width: 200px; height: 32px; padding: 0 10px; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; background: rgba(255,255,255,0.06); color: #f5f5f7;
+    font-size: 13px; font-family: inherit; outline: none;
+  }
+  .navbar-right input:focus { border-color: #007AFF; }
+  .navbar-right input::placeholder { color: #636366; }
+  .page-content { flex: 1; padding: 24px 0; }
+  .section-card {
+    background: #1c1c1e; border-radius: 14px; padding: 20px 24px;
+    border: 1px solid rgba(255,255,255,0.06); margin-bottom: 16px;
+  }
+  .filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .filter-bar label { font-size: 13px; color: #aeaeb2; white-space: nowrap; }
+  .filter-bar input[type="date"] {
+    height: 32px; padding: 0 10px; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; background: rgba(255,255,255,0.06); color: #f5f5f7; font-size: 13px; outline: none;
+    color-scheme: dark; font-family: inherit;
+  }
+  .filter-bar input[type="date"]:focus { border-color: #007AFF; }
+  .table-actions { margin-bottom: 14px; }
+  .detail-section { margin-bottom: 18px; }
+  .detail-section h4 { font-size: 13px; font-weight: 600; color: #aeaeb2; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size: 14px; line-height: 1.6; }
+  .detail-info .label { color: #636366; }
+  .detail-info .value { color: #f5f5f7; word-break: break-all; }
+  .msg-item {
+    padding: 10px 14px; border-radius: 10px; margin-bottom: 8px;
+    font-size: 14px; line-height: 1.5;
+  }
+  .msg-item.user { background: rgba(0,122,255,0.15); margin-left: 20px; }
+  .msg-item.system { background: rgba(255,255,255,0.05); margin-right: 20px; }
+  .msg-item .meta { font-size: 11px; color: #636366; margin-top: 4px; }
+  .el-table { --el-table-text-color: #f5f5f7; --el-table-header-text-color: #aeaeb2; font-size: 13px; }
+  .el-table th.el-table__cell { font-weight: 500; }
+  .el-table--enable-row-hover .el-table__body tr:hover > td { background: rgba(255,255,255,0.03); }
+  .el-dialog { --el-dialog-bg-color: #2c2c2e; border: 1px solid rgba(255,255,255,0.08); }
+  .el-dialog__title { color: #f5f5f7; font-size: 16px; }
+  .el-dialog__headerbtn .el-dialog__close { color: #636366; }
+  .el-dialog__headerbtn:focus .el-dialog__close, .el-dialog__headerbtn:hover .el-dialog__close { color: #aeaeb2; }
+  .el-select { --el-select-bg-color: rgba(255,255,255,0.06); --el-select-input-focus-border-color: #007AFF; width: 140px; }
+  .el-select .el-input__wrapper { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); box-shadow: none; }
+  .el-select .el-input__inner { color: #f5f5f7; }
+  .el-button--primary { --el-button-bg-color: #007AFF; --el-button-border-color: #007AFF; --el-button-hover-bg-color: #0A84FF; --el-button-hover-border-color: #0A84FF; }
+  .el-button { border-radius: 8px; font-size: 13px; }
+  .el-tabs__item { color: #aeaeb2; font-size: 14px; }
+  .el-tabs__item.is-active { color: #007AFF; }
+  .el-tabs__active-bar { background: #007AFF; }
+  .el-tabs__nav-wrap::after { background: rgba(255,255,255,0.06); }
+  .el-pagination { --el-pagination-button-color: #aeaeb2; --el-pagination-hover-color: #f5f5f7; justify-content: flex-end; padding-top: 16px; }
+  .el-pagination button { background: transparent !important; }
+  .el-pagination .el-pager li { background: transparent !important; color: #aeaeb2; }
+  .el-pagination .el-pager li.is-active { color: #007AFF; font-weight: 600; }
+  .el-form-item__label { color: #aeaeb2; font-size: 13px; }
+  .el-input__wrapper { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); box-shadow: none; }
+  .el-input__inner { color: #f5f5f7; }
+  .el-textarea__inner { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #f5f5f7; box-shadow: none; }
+  .el-message { --el-message-bg-color: #2c2c2e; --el-message-border-color: rgba(255,255,255,0.08); --el-message-text-color: #f5f5f7; }
+  .detail-msg-list { max-height: 360px; overflow-y: auto; }
+  .detail-msg-list::-webkit-scrollbar { width: 4px; }
+  .detail-msg-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+  .status-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .status-tag.s0 { color: #636366; background: rgba(99,99,102,0.2); }
+  .status-tag.s7 { color: #30D158; background: rgba(48,209,88,0.15); }
+  .status-tag.s8 { color: #FF453A; background: rgba(255,69,58,0.15); }
+  .status-tag.s9 { color: #FF9F0A; background: rgba(255,159,10,0.15); }
+  .status-tag.s1,.status-tag.s2,.status-tag.s3,.status-tag.s4,.status-tag.s5,.status-tag.s6 { color: #0A84FF; background: rgba(10,132,255,0.15); }
+  @media (max-width: 768px) {
+    #app { padding: 0 12px; }
+    .navbar { flex-direction: column; gap: 10px; align-items: stretch; }
+    .navbar-right input { width: 100%; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .section-card { padding: 14px; }
+    .detail-info { grid-template-columns: 1fr; }
+    .msg-item.user { margin-left: 0; }
+    .msg-item.system { margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="navbar">
+    <div class="navbar-title">移车助手管理后台</div>
+    <div class="navbar-right">
+      <label>password</label>
+      <input v-model="password" placeholder="输入 password" @change="onTokenChange">
+    </div>
+  </div>
+  <div class="page-content">
+    <el-tabs v-model="activeTab">
+      <el-tab-pane label="对话记录" name="sessions">
+        <div class="section-card">
+          <div class="filter-bar">
+            <label>状态</label>
+            <el-select v-model="filterStatus" placeholder="全部" clearable @change="loadSessions(1)">
+              <el-option v-for="(label,key) in statusOptions" :key="key" :label="label" :value="Number(key)"></el-option>
+            </el-select>
+            <label>开始</label>
+            <input type="date" v-model="filterStart" @change="loadSessions(1)">
+            <label>结束</label>
+            <input type="date" v-model="filterEnd" @change="loadSessions(1)">
+            <el-button type="primary" size="small" @click="loadSessions(1)">查询</el-button>
+          </div>
+        </div>
+        <div class="section-card" style="padding:0 0 4px 0;overflow:hidden;">
+          <el-table :data="sessions" style="width:100%" @row-click="showSessionDetail" highlight-current-row>
+            <el-table-column prop="session_id" label="会话ID" min-width="200" show-overflow-tooltip></el-table-column>
+            <el-table-column label="状态" width="100">
+              <template #default="{row}">
+                <span :class="'status-tag s'+row.status">{{ statusLabel(row.status) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" width="170">
+              <template #default="{row}">{{ formatTime(row.created_at) }}</template>
+            </el-table-column>
+            <el-table-column prop="end_reason" label="结束原因" min-width="160" show-overflow-tooltip></el-table-column>
+          </el-table>
+          <el-pagination v-if="sessionTotal>0" background layout="total,prev,pager,next" :total="sessionTotal" v-model:current-page="sessionPage" :page-size="sessionPageSize" @current-change="loadSessions"></el-pagination>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="测试用例" name="testcases">
+        <div class="section-card">
+          <div class="table-actions">
+            <el-button type="primary" size="small" @click="openAddTestCase">+ 新增</el-button>
+          </div>
+        </div>
+        <div class="section-card" style="padding:0 0 4px 0;overflow:hidden;">
+          <el-table :data="testCases" style="width:100%">
+            <el-table-column prop="case_name" label="用例名称" min-width="200" show-overflow-tooltip></el-table-column>
+            <el-table-column label="预期状态" width="100">
+              <template #default="{row}">{{ row.expect_status !== null && row.expect_status !== undefined ? statusLabel(row.expect_status) : '-' }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="140" fixed="right">
+              <template #default="{row}">
+                <el-button link type="primary" size="small" @click="openEditTestCase(row)">编辑</el-button>
+                <el-button link type="danger" size="small" @click="deleteTestCase(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-pagination v-if="tcTotal>0" background layout="total,prev,pager,next" :total="tcTotal" v-model:current-page="tcPage" :page-size="tcPageSize" @current-change="loadTestCases"></el-pagination>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+
+  <el-dialog v-model="detailVisible" title="会话详情" width="640px" :close-on-click-modal="false">
+    <div v-if="detailData" style="padding:4px 0;">
+      <div class="detail-section">
+        <h4>基本信息</h4>
+        <div class="detail-info">
+          <div><span class="label">会话ID</span><br><span class="value" style="font-size:12px;word-break:break-all;">{{ detailData.session_id }}</span></div>
+          <div><span class="label">状态</span><br><span class="value"><span :class="'status-tag s'+detailData.status">{{ statusLabel(detailData.status) }}</span></span></div>
+          <div><span class="label">创建时间</span><br><span class="value">{{ formatTime(detailData.created_at) }}</span></div>
+          <div><span class="label">结束时间</span><br><span class="value">{{ formatTime(detailData.ended_at) || '-' }}</span></div>
+          <div v-if="detailData.end_reason" style="grid-column:1/-1;"><span class="label">结束原因</span><br><span class="value">{{ detailData.end_reason }}</span></div>
+        </div>
+      </div>
+      <div class="detail-section" v-if="detailData.messages && detailData.messages.length">
+        <h4>消息记录</h4>
+        <div class="detail-msg-list">
+          <div v-for="m in detailData.messages" :key="m.id" :class="'msg-item '+(m.sender_type===1?'user':'system')">
+            <div>{{ m.content }}</div>
+            <div class="meta">{{ m.sender_type===1?'用户':'系统' }} · {{ formatTime(m.created_at) }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-section" v-if="detailData.move_car_apply">
+        <h4>移车申请信息</h4>
+        <div class="detail-info">
+          <div><span class="label">车牌号</span><br><span class="value">{{ detailData.move_car_apply.plate_number }}</span></div>
+          <div><span class="label">车牌颜色</span><br><span class="value">{{ colorLabel(detailData.move_car_apply.plate_color) }}</span></div>
+          <div style="grid-column:1/-1;"><span class="label">地址</span><br><span class="value">{{ detailData.move_car_apply.address }}</span></div>
+          <div style="grid-column:1/-1;"><span class="label">原因</span><br><span class="value">{{ detailData.move_car_apply.reason }}</span></div>
+        </div>
+      </div>
+    </div>
+  </el-dialog>
+
+  <el-dialog v-model="tcFormVisible" :title="tcFormTitle" width="500px" :close-on-click-modal="false">
+    <el-form :model="tcForm" label-width="80px" @submit.prevent="submitTestCase">
+      <el-form-item label="用例名称" required>
+        <el-input v-model="tcForm.case_name" placeholder="请输入用例名称"></el-input>
+      </el-form-item>
+      <el-form-item label="输入内容" required>
+        <el-input v-model="tcForm.input_content" type="textarea" :rows="3" placeholder="请输入用户输入文本"></el-input>
+      </el-form-item>
+      <el-form-item label="预期回复">
+        <el-input v-model="tcForm.expect_reply" type="textarea" :rows="3" placeholder="期望的系统回复"></el-input>
+      </el-form-item>
+      <el-form-item label="预期状态">
+        <el-select v-model="tcForm.expect_status" placeholder="请选择" clearable>
+          <el-option v-for="(label,key) in statusOptions" :key="key" :label="label" :value="Number(key)"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitTestCase" :loading="tcSubmitting">保存</el-button>
+        <el-button @click="tcFormVisible=false">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, watch, nextTick } = Vue;
+
+const API_BASE = 'http://127.0.0.1:8000';
+
+const STATUS_MAP = { 0:'初始', 1:'待车牌', 2:'确认车牌', 3:'待颜色', 4:'待地址', 5:'待原因', 6:'校验中', 7:'受理成功', 8:'不予受理', 9:'转人工' };
+const COLOR_MAP = { 1:'蓝牌', 2:'绿牌', 3:'黄牌', 4:'白牌', 5:'黑牌' };
+
+const app = createApp({
+  setup() {
+    const token = ref(localStorage.getItem('admin_token') || '');
+    const activeTab = ref('sessions');
+    const filterStatus = ref(null);
+    const filterStart = ref('');
+    const filterEnd = ref('');
+    const sessions = ref([]);
+    const sessionPage = ref(1);
+    const sessionPageSize = 20;
+    const sessionTotal = ref(0);
+    const testCases = ref([]);
+    const tcPage = ref(1);
+    const tcPageSize = 20;
+    const tcTotal = ref(0);
+    const detailVisible = ref(false);
+    const detailData = ref(null);
+    const tcFormVisible = ref(false);
+    const tcFormTitle = ref('');
+    const tcSubmitting = ref(false);
+    const tcForm = reactive({ id: null, case_name: '', input_content: '', expect_reply: '', expect_status: null });
+    const statusOptions = computed(() => STATUS_MAP);
+
+    function headers() {
+      return { 'Content-Type': 'application/json', 'X-Admin-Token': token.value };
+    }
+
+    function statusLabel(s) { return STATUS_MAP[s] || ('未知('+s+')'); }
+    function colorLabel(s) { return COLOR_MAP[s] || ('未知('+s+')'); }
+
+    function formatTime(t) {
+      if (!t) return '';
+      const d = new Date(t);
+      const pad = n => String(n).padStart(2,'0');
+      return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
+
+    async function api(url, opts) {
+      const res = await fetch(API_BASE + url, { headers: headers(), ...opts });
+      if (res.status === 401) { ElementPlus.ElMessage.error('Token 无效或未提供'); return null; }
+      const json = await res.json();
+      if (json.code !== 0) { ElementPlus.ElMessage.error(json.message || '请求失败'); return null; }
+      return json.data;
+    }
+
+    async function loadSessions(page) {
+      if (page) sessionPage.value = page;
+      const params = new URLSearchParams({ page: sessionPage.value, page_size: sessionPageSize });
+      if (filterStatus.value != null && filterStatus.value !== '') params.set('status', filterStatus.value);
+      if (filterStart.value) params.set('start_time', filterStart.value+'T00:00:00');
+      if (filterEnd.value) params.set('end_time', filterEnd.value+'T23:59:59');
+      const data = await api('/api/admin/sessions?'+params.toString());
+      if (data) { sessions.value = data.items; sessionTotal.value = data.total; }
+    }
+
+    async function showSessionDetail(row) {
+      const data = await api('/api/admin/sessions/'+row.session_id);
+      if (data) { detailData.value = data; detailVisible.value = true; }
+    }
+
+    async function loadTestCases(page) {
+      if (page) tcPage.value = page;
+      const data = await api('/api/admin/test-cases?page='+tcPage.value+'&page_size='+tcPageSize);
+      if (data) { testCases.value = data.items; tcTotal.value = data.total; }
+    }
+
+    function openAddTestCase() {
+      tcForm.id = null; tcForm.case_name = ''; tcForm.input_content = ''; tcForm.expect_reply = ''; tcForm.expect_status = null;
+      tcFormTitle.value = '新增测试用例'; tcFormVisible.value = true;
+    }
+
+    function openEditTestCase(row) {
+      tcForm.id = row.id; tcForm.case_name = row.case_name; tcForm.input_content = row.input_content;
+      tcForm.expect_reply = row.expect_reply || ''; tcForm.expect_status = row.expect_status;
+      tcFormTitle.value = '编辑测试用例'; tcFormVisible.value = true;
+    }
+
+    async function submitTestCase() {
+      if (!tcForm.case_name.trim() || !tcForm.input_content.trim()) {
+        ElementPlus.ElMessage.warning('请填写用例名称和输入内容'); return;
+      }
+      tcSubmitting.value = true;
+      try {
+        if (tcForm.id) {
+          const r = await api('/api/admin/test-cases/'+tcForm.id, {
+            method: 'PUT', body: JSON.stringify({
+              case_name: tcForm.case_name, input_content: tcForm.input_content,
+              expect_reply: tcForm.expect_reply || null, expect_status: tcForm.expect_status
+            })
+          });
+          if (r) { ElementPlus.ElMessage.success('已更新'); tcFormVisible.value = false; loadTestCases(tcPage.value); }
+        } else {
+          const r = await api('/api/admin/test-cases', {
+            method: 'POST', body: JSON.stringify({
+              case_name: tcForm.case_name, input_content: tcForm.input_content,
+              expect_reply: tcForm.expect_reply || null, expect_status: tcForm.expect_status
+            })
+          });
+          if (r) { ElementPlus.ElMessage.success('已新增'); tcFormVisible.value = false; loadTestCases(1); }
+        }
+      } finally { tcSubmitting.value = false; }
+    }
+
+    async function deleteTestCase(row) {
+      try {
+        await ElementPlus.ElMessageBox.confirm('确定删除测试用例「'+row.case_name+'」？', '确认', { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' });
+        const r = await api('/api/admin/test-cases/'+row.id, { method: 'DELETE' });
+        if (r !== null) { ElementPlus.ElMessage.success('已删除'); loadTestCases(tcPage.value); }
+      } catch(e) { if (e !== 'cancel') throw e; }
+    }
+
+    function onTokenChange() {
+      localStorage.setItem('admin_token', token.value);
+      if (activeTab.value === 'sessions') loadSessions(1);
+      else loadTestCases(1);
+    }
+
+    watch(activeTab, (tab) => {
+      if (tab === 'sessions') loadSessions(1);
+      else if (tab === 'testcases') loadTestCases(1);
+    });
+
+    onMounted(() => {
+      if (token.value) { loadSessions(1); loadTestCases(1); }
+    });
+
+    return {
+      token, activeTab, filterStatus, filterStart, filterEnd,
+      sessions, sessionPage, sessionPageSize, sessionTotal,
+      testCases, tcPage, tcPageSize, tcTotal,
+      detailVisible, detailData,
+      tcFormVisible, tcFormTitle, tcSubmitting, tcForm,
+      statusOptions, statusLabel, colorLabel, formatTime,
+      loadSessions, showSessionDetail, loadTestCases,
+      openAddTestCase, openEditTestCase, submitTestCase, deleteTestCase,
+      onTokenChange,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
